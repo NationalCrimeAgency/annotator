@@ -12,6 +12,7 @@
   "ui": true,
   "requiredBundles": ["kibanaReact"],
   "requiredPlugins": [
+    "dataViewFieldEditor",
     "features",
     "fieldFormats",
     "security",

@@ -8,9 +8,5 @@
     "dev": "yarn plugin-helpers dev",
     "plugin-helpers": "node ../../scripts/plugin_helpers",
     "kbn": "node ../../scripts/kbn"
-  },
-  "devDependencies": {
-    "react-dom": "~18.2.0",
-    "@elastic/eui": "97.3.1"
   }
 }

@@ -22,7 +22,7 @@ by configuring a runtime field which uses the included Custom Field Formatter.
 
 Before attempting to use annotations, each respective index must define a nested mapping for any annotation fields.
 
-> Tested on Kibana 8.17.1, this plugin makes use of Kibana APIs and internals which may change between versions.
+> Tested on Kibana 8.19.10, this plugin makes use of Kibana APIs and internals which may change between versions.
 
 This plugin was created based on a demonstrator developed by a consultant at Elastic.
 
@@ -169,7 +169,7 @@ yarn kbn bootstrap
 Automatically generate the UI artefacts of the plugin during development:
 
 ```shell
-yarn plugin-helpers dev --watch
+yarn dev --watch
 ```
 
 If not done so already,
@@ -184,7 +184,7 @@ Kibana can now be started as normal.
 Build a distributable archive containing the plugin artefacts:
 
 ```shell
-kibana_version="8.17.1"
+kibana_version="8.19.10"
 yarn build --kibana-version "$kibana_version"
 ```
 
