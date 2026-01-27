@@ -1,15 +1,31 @@
+/**
+ * Crown Copyright 2025, National Crime Agency
+ *
+ * Package for initialising the server-side of this plugin.
+ *
+ * @author d221155 (NCA)
+ */
+
 import type { PluginInitializerContext } from '@kbn/core/server'
 import { CoreSetup, CoreStart, Plugin, Logger, DEFAULT_APP_CATEGORIES } from '@kbn/core/server'
 import { AnnotatorPluginSetup, AnnotatorPluginStart } from './types'
 import { defineRoutes } from './routes'
-import {AnnotationsFormat, ConfigType, PLUGIN_ID, PLUGIN_NAME} from "../common";
+import {AnnotationsFieldFormatter, ConfigType, PLUGIN_ID, PLUGIN_NAME} from "../common";
 import { FieldFormatsSetup } from '@kbn/field-formats-plugin/server'
 import { SubFeatureConfig } from '@kbn/features-plugin/common'
 
-export function registerAnnotationsFieldFormatter(fieldFormats: FieldFormatsSetup) {
-  fieldFormats.register(AnnotationsFormat);
+export function registerAnnotationsFieldFormatter(fieldFormats: FieldFormatsSetup, config: ConfigType) {
+  // Factory that returns the custom Field Formatter as a closure embedded with the plugin config
+  fieldFormats.register(class AnnotationsFieldFormatterWithConfig extends AnnotationsFieldFormatter {
+    getPluginConfig(): ConfigType {
+      return config
+    }
+  })
 }
 
+/**
+ * Annotator plugin (server-side).
+ */
 export class AnnotatorPlugin
   implements Plugin<AnnotatorPluginSetup, AnnotatorPluginStart> {
   private readonly config: ConfigType
@@ -95,7 +111,7 @@ export class AnnotatorPlugin
     const router = core.http.createRouter()
 
     // Register a custom field formatter
-    registerAnnotationsFieldFormatter(deps.fieldFormats)
+    registerAnnotationsFieldFormatter(deps.fieldFormats, this.config)
 
     // Register server side APIs
     defineRoutes(this.logger, this.config, core, router)

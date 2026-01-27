@@ -1,5 +1,20 @@
-import { EuiComboBoxOptionOption, EuiRadioGroupOption } from '@elastic/eui'
+/**
+ * Crown Copyright 2025, National Crime Agency
+ *
+ * Package for types related to annotations.
+ *
+ * @author d221155 (NCA)
+ */
+
+import {EuiComboBoxOptionOption, EuiRadioGroupOption, EuiSelectableOption} from '@elastic/eui'
 import {schema, TypeOf} from '@kbn/config-schema'
+
+/**
+ * Available control types for fields, affecting the UI component and therefore user-interaction style for a control.
+ */
+export enum ControlType {
+  text = 'text', switch = 'switch', radio = 'radio', multiple = 'multiple', single = 'single'
+}
 
 // noinspection TypeScriptValidateJSTypes
 export const updateAnnotationsHttpResponseOptions = {
@@ -31,11 +46,19 @@ export const annotationConfigTag = {
 }
 export type AnnotationConfigTag = TypeOf<typeof annotationConfigTag.schema>
 
+/**
+ * Flattened annotations configuration.
+ */
+export interface AnnotationConfigFlat extends Omit<TagConfig, "children" | "name"> {
+  categoryName: string
+  featureName: string | undefined
+}
+
 // noinspection TypeScriptValidateJSTypes
 export const tagConfig = {
   schema: schema.object({
     name: schema.string(),
-    controlType: schema.string({defaultValue: 'multiple'}),  // multiple, single
+    controlType: schema.string({defaultValue: 'single'}),
     color: schema.maybe(schema.string()),
     iconType: schema.maybe(schema.string()),
     comment_required: schema.boolean({defaultValue: false}),
@@ -102,4 +125,10 @@ export const annotation = {
   })
 }
 export type AnnotationType = TypeOf<typeof annotation.schema>
-export type FieldValue = string | EuiComboBoxOptionOption[] | EuiRadioGroupOption | boolean | undefined
+export type FieldValue =
+  string
+  | EuiComboBoxOptionOption[]
+  | EuiRadioGroupOption
+  | EuiSelectableOption[]
+  | boolean
+  | undefined

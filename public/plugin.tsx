@@ -1,7 +1,7 @@
 /**
  * Crown Copyright 2025, National Crime Agency
  *
- * Package for initialising this plugin.
+ * Package for initialising the UI-side of this plugin.
  *
  * @author d221155 (NCA)
  */
@@ -11,23 +11,36 @@ import {
   AnnotatorPluginSetup,
   AnnotatorPluginStart
 } from './types'
-import {AnnotationsFormat, ConfigType, DocViewConfig, PLUGIN_ID} from '../common'
+import {AnnotationsFieldFormatter, ConfigType, DocViewConfig, PLUGIN_ID} from '../common'
 import {DocViewRenderProps} from '@kbn/unified-doc-viewer/types'
 import React from 'react'
 import {EuiDelayRender, EuiSkeletonText} from '@elastic/eui'
 import {FieldFormatsSetup} from '@kbn/field-formats-plugin/public'
+import {getTagConfigsForField} from "../common";
+import {AnnotationsFieldFormatterEditor} from "./components/annotations";
+import {FieldFormatEditorFactory, IndexPatternFieldEditorSetup } from "@kbn/data-view-field-editor-plugin/public"
 
 // Lazily initialises the plugin components
 const AnnotationsDocViewer =
-  React.lazy(() => import('./components/doc_viewer_annotations'))
+  React.lazy(() => import('./components/annotations'))
 
 // Registers a custom Field Formatter for use within Data Views
-export function registerAnnotationsFormatter(fieldFormats: FieldFormatsSetup) {
-  fieldFormats.register([AnnotationsFormat]);
+export function registerAnnotationsFieldFormatter(fieldFormats: FieldFormatsSetup, indexPatternFieldEditor: IndexPatternFieldEditorSetup, config: ConfigType) {
+  // Factory that returns the custom Field Formatter as a closure embedded with the plugin config
+  fieldFormats.register([class AnnotationsFieldFormatterWithConfig extends AnnotationsFieldFormatter {
+    getPluginConfig(): ConfigType {
+      return config
+    }
+  }])
+
+  // Factory that returns the editor for the custom Field Formatter
+  const AnnotationsFieldFormatterEditorFactory = async () => AnnotationsFieldFormatterEditor;
+  AnnotationsFieldFormatterEditorFactory.formatId = AnnotationsFieldFormatterEditor.formatId;
+  indexPatternFieldEditor.fieldFormatEditors.register(AnnotationsFieldFormatterEditorFactory as FieldFormatEditorFactory)
 }
 
 /**
- * Annotator plugin.
+ * Annotator plugin (UI-side).
  */
 // noinspection TypeScriptValidateJSTypes
 export class AnnotatorPlugin
@@ -68,7 +81,7 @@ export class AnnotatorPlugin
 
     // Register a custom field formatter
     console.debug(this.cn + `setup: Adding custom field formatter`)
-    registerAnnotationsFormatter(deps.fieldFormats)
+    registerAnnotationsFieldFormatter(deps.fieldFormats, deps.dataViewFieldEditor, this.config)
 
     // Fetch the user's effective feature privileges
     const [coreStart] = await core.getStartServices()
@@ -100,7 +113,7 @@ export class AnnotatorPlugin
                   core={core}
                   field={f}
                   debug={this.config.debug}
-                  tagConfigs={config.annotations.find(ac => ac.field == f)?.tags ?? []}
+                  tagConfigs={getTagConfigsForField(f, config)}
                 />
               )}
             </React.Suspense>

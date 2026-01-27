@@ -1,0 +1,41 @@
+{
+  "mappings": {
+    "properties": {
+      "message": {
+        "type": "text"
+      },
+      "metadata.annotations": {
+        "type": "nested",
+        "properties": {
+          "created_timestamp": {
+            "type": "date"
+          },
+          "created_username": {
+            "type": "keyword"
+          },
+          "feature_category": {
+            "type": "keyword"
+          },
+          "feature_name": {
+            "type": "keyword"
+          },
+          "feature_comment": {
+            "type": "text"
+          },
+          "source_type": {
+            "type": "keyword"
+          },
+          "source_name": {
+            "type": "keyword"
+          }
+        }
+      },
+      "annotations": {
+        "type": "keyword",
+        "script": {
+          "source": "String annotationFieldName = 'metadata.annotations'; String[] annotationProps = new String[] {'feature_category', 'feature_name'};  if (params._source[annotationFieldName] != null) {     StringBuilder builder = new StringBuilder();     builder.append('[');      for (annotation in params._source[annotationFieldName]) {         builder.append('{');          for (fieldName in annotationProps) {             if (annotation[fieldName] != null) {                 builder.append('\"').append(fieldName).append('\": \"').append(annotation[fieldName]).append('\", ');             }         }          builder.setLength(builder.length() - 2);         builder.append('},');     }      if (builder.length() > 1) {       builder.setLength(builder.length() - 1);     }      builder.append(']');     emit(builder.toString()); } "
+        }
+      }
+    }
+  }
+}

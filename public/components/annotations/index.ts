@@ -6,7 +6,9 @@
  * @author d221155 (NCA)
  */
 
-import { DocViewerAnnotations } from './table';
+import {DocViewerAnnotations} from "./doc_viewer";
+
+export { AnnotationsFieldFormatterEditor } from './editor';
 
 // Required for usage in React.lazy
 // eslint-disable-next-line import/no-default-export

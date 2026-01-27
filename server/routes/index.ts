@@ -1,3 +1,11 @@
+/**
+ * Crown Copyright 2025, National Crime Agency
+ *
+ * Package for defining the server-side routes for this plugin.
+ *
+ * @author d221155 (NCA)
+ */
+
 import {CoreSetup, IRouter, KibanaRequest, Logger} from '@kbn/core/server'
 import {schema} from '@kbn/config-schema'
 

@@ -1,4 +1,7 @@
-logging:
+logging.loggers:
+  - name: plugins.annotator
+    level: debug
+logging.browser:
   loggers:
     - name: plugins.annotator
       level: debug
@@ -15,12 +18,12 @@ annotator:
     - field: metadata.annotations  # Field into which annotations will be saved
       tags:
           # Example of multi-class (exclusive) classification using radio input
-        - name: Sentiment  
-          color: '#D36086'
-          controlType: radio
-          iconType: crosshairs
+        - name: Sentiment  # Categories group tags
+          color: '#D36086'  # Colour for the tag's pill background
+          controlType: single  # Control type: text, switch, radio, multiple, or single (default)
+          iconType: crosshairs  # Category icon
           children:
-            - name: Very Positive
+            - name: Very Positive  # These are the actual tags
             - name: Positive
             - name: Neutral
             - name: Negative
@@ -28,7 +31,7 @@ annotator:
 
           # Example of two-class (binary) classification using radio input
         - name: Flagged
-          controlType: radio
+          controlType: single
           color: primary
           iconType: flag
           children:
@@ -37,7 +40,7 @@ annotator:
 
           # Example of free text notes field
         - name: Notes
-          controlType: text 
+          controlType: text
 
           # Example multi-label classification
         - name: Tags
