@@ -14,7 +14,7 @@ set -e
 IMAGE_NAME='kibana/kibana'
 
 # Elastic stack version
-STACK_VERSION='8.19.10'
+STACK_VERSION='8.19.12'
 
 # Image version suffix to identify the custom build
 IMAGE_VERSION_SUFFIX='_custom'

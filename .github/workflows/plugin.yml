@@ -1,0 +1,81 @@
+name: Kibana Plugin
+
+# on:
+  # push:
+    # branches: [ "main" ]
+  # pull_request:
+    # branches: [ "main" ]
+on: workflow_dispatch
+
+env:
+  NAME: 'annotator'
+  ES_STACK_VERSION: '8.19.12'                  # Version of the Elastic stack to use
+  ES_STACK_ARCH: 'linux-x86_64'               # System architecture to target
+
+  CI_STATS_DISABLED: 'true'
+  DEBIAN_FRONTEND: 'noninteractive'           # Indicate headless operation
+
+jobs:
+  setup_kibana:
+    uses: ./.github/workflows/kibana.yml
+    with:
+      stackVersion: '8.19.12'
+      stackArch: 'linux-x86_64'
+
+  build_plugin:
+    needs: setup_kibana
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Install packages
+      run: |
+        npm install -g yarn
+        yarn config set network-timeout 100000 -g && npm config set legacy-peer-deps=true
+
+    - name: Restore cache for Kibana source repository
+      id: cache-kibana-repository
+      uses: actions/cache@v4
+      with:
+        path: ${{ needs.setup_kibana.outputs.path }}
+        key: ${{ needs.setup_kibana.outputs.cacheKey }}
+
+    - name: Get yarn cache directory path
+      id: yarn-cache-dir-path
+      run: echo "yarn_dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      # ~1 GB
+    - name: Restore yarn cache
+      uses: actions/cache@v4
+      id: yarn-cache
+      with:
+        path: ${{ steps.yarn-cache-dir-path.outputs.yarn_dir }}
+        key: ${{ runner.os }}-yarn-kibana-${{ env.ES_STACK_VERSION }}-${{ hashFiles('**/yarn.lock') }}
+        restore-keys: |
+          ${{ runner.os }}-yarn-kibana-${{ env.ES_STACK_VERSION }}
+
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        path: plugin
+
+    - name: Move repo
+      run: |
+        mv ${GITHUB_WORKSPACE}/plugin ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+
+    - name: Build plugin
+      run: |
+        source "${HOME}/.nvm/nvm.sh"
+        cd ${{ needs.setup_kibana.outputs.path }}
+        nvm install && nvm use
+        yarn add -W caniuse-lite
+        npx --yes update-browserslist-db@latest
+        cd plugins/${{ env.NAME }}
+        yarn kbn bootstrap
+        yarn build --kibana-version "${{ env.ES_STACK_VERSION }}"
+
+    - name: Upload artefacts
+      uses: actions/upload-artifact@v4
+      with:
+        name: ${{ env.NAME }}-plugin-${{ env.ES_STACK_VERSION }}
+        path: ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}/build/*.zip
+        compression-level: 0

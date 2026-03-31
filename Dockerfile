@@ -1,4 +1,6 @@
-FROM docker.elastic.co/kibana/kibana:8.19.10
-COPY build/annotator-8.19.10.zip /usr/share/kibana/installplugins/annotator/build/
-RUN /usr/share/kibana/bin/kibana-plugin install file:///usr/share/kibana/installplugins/annotator/build/annotator-8.19.10.zip
+FROM docker.elastic.co/kibana/kibana:8.19.12
+COPY build/annotator-8.19.12.zip /usr/share/kibana/installplugins/annotator/build/
+RUN /usr/share/kibana/bin/kibana-plugin install file:///usr/share/kibana/installplugins/annotator/build/annotator-8.19.12.zip
+COPY build/chatMessages-8.19.12.zip /usr/share/kibana/installplugins/chat-messages/build/
+RUN /usr/share/kibana/bin/kibana-plugin install file:///usr/share/kibana/installplugins/chat-messages/build/chatMessages-8.19.12.zip
 RUN /usr/share/kibana/bin/kibana --optimize

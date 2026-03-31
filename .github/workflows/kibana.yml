@@ -1,0 +1,77 @@
+name: Kibana Development Environment
+
+on:
+  workflow_call:
+    inputs:
+      stackVersion:
+        required: true
+        type: string
+      stackArch:
+        required: false
+        type: string
+        default: "linux-x86_64"
+    outputs:
+      path:
+        value: ${{ jobs.setup_kibana.outputs.path }}
+      cacheKey:
+        value: ${{ jobs.setup_kibana.outputs.cacheKey }}
+
+jobs:
+  setup_kibana:
+    runs-on: ubuntu-latest
+
+    outputs:
+      path: ${{ steps.gen_kibana_path.outputs.path }}
+      cacheKey: ${{ steps.gen_kibana_path.outputs.cacheKey }}
+ 
+    steps:
+      - name: Generate interpolated variables
+        id: gen_kibana_path
+        run: |
+          KIBANA_DIR="${GITHUB_WORKSPACE}/kibana_${{ inputs.stackVersion }}"
+          KIBANA_CACHE_KEY="kibana-${{ inputs.stackArch }}-${{ inputs.stackVersion }}"
+          echo "KIBANA_DIR=${KIBANA_DIR}" >> "$GITHUB_ENV"
+          echo "KIBANA_CACHE_KEY=${KIBANA_CACHE_KEY}" >> "$GITHUB_ENV"
+          echo "path=${KIBANA_DIR}" >> $GITHUB_OUTPUT
+          echo "cacheKey=${KIBANA_CACHE_KEY}" >> $GITHUB_OUTPUT
+
+      - name: Install Packages
+        run: |
+          npm install -g yarn
+          yarn config set network-timeout 100000 -g && npm config set legacy-peer-deps=true
+     
+      # ~1 GB
+      - name: Create cache for Kibana source repository
+        id: cache-kibana-repository
+        uses: actions/cache@v4
+        with:
+          path: ${{ env.KIBANA_DIR }}
+          key: ${{ env.KIBANA_CACHE_KEY }}
+ 
+      - name: Download Kibana
+        if: steps.cache-kibana-repository.outputs.cache-hit != 'true'
+        run: |
+          git clone -c advice.detachedHead=false --depth 1 https://github.com/elastic/kibana.git --branch "v${{ inputs.stackVersion }}" "${KIBANA_DIR}"
+     
+      - name: Get yarn cache directory path
+        id: yarn-cache-dir-path
+        run: echo "yarn_dir=$(yarn cache dir)" >> $GITHUB_OUTPUT
+
+      # ~1 GB
+      - name: Create yarn cache
+        uses: actions/cache@v4
+        id: yarn-cache
+        with:
+          path: ${{ steps.yarn-cache-dir-path.outputs.yarn_dir }}
+          key: ${{ runner.os }}-yarn-kibana-${{ inputs.stackVersion }}-${{ hashFiles('**/yarn.lock') }}
+          restore-keys: |
+            ${{ runner.os }}-yarn-kibana-${{ inputs.stackVersion }}
+
+      - name: Bootstrap Kibana
+        run: |
+          source "${HOME}/.nvm/nvm.sh"
+          cd "${KIBANA_DIR}"
+          nvm install && nvm use
+          yarn add -W caniuse-lite
+          npx --yes update-browserslist-db@latest
+          yarn kbn bootstrap
