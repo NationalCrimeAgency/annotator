@@ -73,6 +73,21 @@ jobs:
         yarn kbn bootstrap
         yarn build --kibana-version "${{ env.ES_STACK_VERSION }}"
 
+    - name: Run tests
+      run: |
+        source "${HOME}/.nvm/nvm.sh"
+        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        nvm install && nvm use
+        yarn test
+
+    - name: Generate coverage report
+      if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+      run: |
+        source "${HOME}/.nvm/nvm.sh"
+        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        nvm install && nvm use
+        yarn test:coverage
+
     - name: Upload artefacts
       uses: actions/upload-artifact@v4
       with:

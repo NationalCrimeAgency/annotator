@@ -91,7 +91,6 @@ export type Annotation = TypeOf<typeof annotationConfig.schema>
 export const configSchema = schema.object({
   enabled: schema.boolean({defaultValue: true}),
   debug: schema.boolean({defaultValue: schema.contextRef('dev')}),  // Enabled by default in Dev mode
-  demo: schema.boolean({defaultValue: false}),
   docViews: schema.arrayOf(docViewConfig.schema, {defaultValue: []}),
   annotations: schema.arrayOf(annotationConfig.schema, {defaultValue: []})
 });

@@ -24,7 +24,6 @@ export const config: PluginConfigDescriptor<ConfigType> = {
   exposeToBrowser: {
     enabled: true,
     debug: true,
-    demo: true,
     docViews: true,
     annotations: true
   },

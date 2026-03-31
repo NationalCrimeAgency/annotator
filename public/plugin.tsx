@@ -63,7 +63,7 @@ export class AnnotatorPlugin
    * @private
    */
   private shouldShowFlyout(docViewConfig: DocViewConfig, capabilities: Record<string, boolean | Record<string, boolean>>): boolean {
-    return docViewConfig.fields.map((f) => f.replace('.', '_')).filter(
+    return docViewConfig.fields.map((f) => f.replace(/\./g, '_')).filter(
       (f) => capabilities[`${f}:view`]
     ).length > 0
   }

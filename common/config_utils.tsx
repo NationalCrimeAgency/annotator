@@ -57,7 +57,7 @@ export function getTagConfigsForField(field: string, config: ConfigType | undefi
  * @returns If matched, returns a flattened AnnotationConfig
  */
 export function findAnnotationConfig(flattenedTagConfigs: AnnotationConfigFlat[], feature_category: string, feature_name?: string | undefined) {
-  return flattenedTagConfigs.find((t) => (
-    (t.categoryName == feature_category)) && (t.featureName == feature_name ? (t.featureName == feature_name != undefined) : true)
+  return flattenedTagConfigs.find((t) => (t.categoryName == feature_category) &&
+    ((feature_name == undefined) || (t.featureName == feature_name))
   )
 }

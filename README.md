@@ -42,11 +42,6 @@ This plugin was created based on a demonstrator developed by a consultant at Ela
 * Features:
   * **Multiselect**: Apply annotations to multiple documents at the same time
   * **Observers**: Broadcast annotation changes can also be consumed outside Elastic components
-* Tests:
-  * Unit
-  * Functional
-  * Accessibility
-  * Packaging
 
 ## Configuration
 
@@ -178,6 +173,41 @@ For [development purposes](https://www.elastic.co/docs/extend/kibana/running-kib
 this can be added to a (new) file `config/kibana.dev.yml` within the Kibana root directory.
 
 Kibana can now be started as normal.
+
+## Testing
+
+### Running Tests
+
+Run all tests:
+
+```shell
+yarn test
+```
+
+Run tests in watch mode (re-runs on file changes):
+
+```shell
+yarn test:watch
+```
+
+Generate coverage report (stored under `../../target/kibana-coverage/jest/plugins/annotator/`):
+
+```shell
+yarn test:coverage
+```
+
+### Test Structure
+
+Following standard Kibana conventions, tests are colocated with source files:
+
+* `common/*.test.ts(x)` - Utility and type validation tests
+* `public/**/*.test.tsx` - React component and plugin tests
+* `server/**/*.test.ts` - Server plugin and route tests
+
+And mocks are collated into factories:
+
+* `public/mocks.ts`
+* `server/mocks.ts`
 
 ## Deploy
 

@@ -19,10 +19,12 @@ import {AnnotationsFieldFormatter, AnnotationsFieldFormatterParams} from "../../
 export const AnnotationsFieldFormatterEditor: FieldFormatEditor<AnnotationsFieldFormatterParams> = (props) => {
   return (
     <EuiFormRow label="Field Name"
-                helpText="Enter the field name so it can be matched against the Annotator configuration parameters">
+                helpText="Enter the field name so it can be matched against the Annotator configuration parameters"
+                data-test-subj="annotationsEditorFieldName">
       <EuiFieldText
         defaultValue='metadata.annotations'
         required={true}
+        data-test-subj="annotationsEditorFieldValue"
         onChange={(e) => {
           props.onChange({
             fieldName: e.target.value,
