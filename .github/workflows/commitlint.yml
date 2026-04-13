@@ -1,5 +1,5 @@
 #
-# Linting before merging a PR
+# Linting commit messages before merging a PR
 #
 
 name: Commit Lint

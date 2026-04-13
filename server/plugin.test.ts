@@ -6,7 +6,8 @@
  * @author d221155 (NCA)
  */
 
-import { AnnotatorPlugin, registerAnnotationsFieldFormatter } from './plugin';
+import { AnnotatorPlugin } from './plugin';
+import { registerAnnotationsFieldFormatter } from './register_field_formatter';
 import { coreMock, loggingSystemMock } from '@kbn/core/server/mocks';
 import { ConfigType, PLUGIN_ID, PLUGIN_NAME } from '../common';
 import { PluginInitializerContext } from "@kbn/core/server";

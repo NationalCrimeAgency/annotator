@@ -7,22 +7,26 @@
  */
 
 import React from 'react';
-import {EuiFormRow, EuiFieldText} from '@elastic/eui';
-import {FieldFormatEditor} from "@kbn/data-view-field-editor-plugin/public";
-import {AnnotationsFieldFormatter, AnnotationsFieldFormatterParams} from "../../../common";
+import { EuiFormRow, EuiFieldText } from '@elastic/eui';
+import { FieldFormatEditor } from '@kbn/data-view-field-editor-plugin/public';
+import { AnnotationsFieldFormatter, AnnotationsFieldFormatterParams } from '../../../common';
 
 /**
  * Captures a configuration for use by the custom field formatter for annotations.
  * @param props
  * @constructor
  */
-export const AnnotationsFieldFormatterEditor: FieldFormatEditor<AnnotationsFieldFormatterParams> = (props) => {
+export const AnnotationsFieldFormatterEditor: FieldFormatEditor<AnnotationsFieldFormatterParams> = (
+  props
+) => {
   return (
-    <EuiFormRow label="Field Name"
-                helpText="Enter the field name so it can be matched against the Annotator configuration parameters"
-                data-test-subj="annotationsEditorFieldName">
+    <EuiFormRow
+      label="Field Name"
+      helpText="Enter the field name so it can be matched against the Annotator configuration parameters"
+      data-test-subj="annotationsEditorFieldName"
+    >
       <EuiFieldText
-        defaultValue='metadata.annotations'
+        defaultValue="metadata.annotations"
         required={true}
         data-test-subj="annotationsEditorFieldValue"
         onChange={(e) => {

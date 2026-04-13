@@ -6,16 +6,15 @@
  * @author d221155 (NCA)
  */
 
-import type {PluginConfigDescriptor, PluginInitializerContext} from '@kbn/core/server'
-import {AnnotatorPlugin} from './plugin'
-import {configSchema, ConfigType} from "../common";
-
+import type { PluginConfigDescriptor, PluginInitializerContext } from '@kbn/core/server';
+import { AnnotatorPlugin } from './plugin';
+import { configSchema, ConfigType } from '../common';
 
 export function plugin(initializerContext: PluginInitializerContext) {
-  return new AnnotatorPlugin(initializerContext)
+  return new AnnotatorPlugin(initializerContext);
 }
 
-export type {AnnotatorPluginSetup, AnnotatorPluginStart} from './types'
+export type { AnnotatorPluginSetup, AnnotatorPluginStart } from './types';
 
 // Hook to expose the expected schema of this plugin's configuration to Kibana
 export const config: PluginConfigDescriptor<ConfigType> = {
@@ -25,7 +24,7 @@ export const config: PluginConfigDescriptor<ConfigType> = {
     enabled: true,
     debug: true,
     docViews: true,
-    annotations: true
+    annotations: true,
   },
-  schema: configSchema
+  schema: configSchema,
 };

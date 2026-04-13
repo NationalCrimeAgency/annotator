@@ -158,7 +158,7 @@ nvm use
 Install and configure dependencies such as `node_modules`:
 
 ```shell
-yarn bootstrap
+yarn install
 ```
 
 Automatically generate the UI artefacts of the plugin during development:

@@ -6,45 +6,35 @@
  * @author d221155 (NCA)
  */
 
-import type { PluginInitializerContext } from '@kbn/core/server'
-import { CoreSetup, CoreStart, Plugin, Logger, DEFAULT_APP_CATEGORIES } from '@kbn/core/server'
-import { AnnotatorPluginSetup, AnnotatorPluginStart } from './types'
-import { defineRoutes } from './routes'
-import {AnnotationsFieldFormatter, ConfigType, PLUGIN_ID, PLUGIN_NAME} from "../common";
-import { FieldFormatsSetup } from '@kbn/field-formats-plugin/server'
-import { SubFeatureConfig } from '@kbn/features-plugin/common'
-
-export function registerAnnotationsFieldFormatter(fieldFormats: FieldFormatsSetup, config: ConfigType) {
-  // Factory that returns the custom Field Formatter as a closure embedded with the plugin config
-  fieldFormats.register(class AnnotationsFieldFormatterWithConfig extends AnnotationsFieldFormatter {
-    getPluginConfig(): ConfigType {
-      return config
-    }
-  })
-}
+import type { PluginInitializerContext } from '@kbn/core/server';
+import { CoreSetup, CoreStart, Plugin, Logger, DEFAULT_APP_CATEGORIES } from '@kbn/core/server';
+import { SubFeatureConfig } from '@kbn/features-plugin/common';
+import { AnnotatorPluginSetup, AnnotatorPluginStart } from './types';
+import { defineRoutes } from './routes';
+import { ConfigType, PLUGIN_ID, PLUGIN_NAME } from '../common';
+import { registerAnnotationsFieldFormatter } from './register_field_formatter';
 
 /**
  * Annotator plugin (server-side).
  */
-export class AnnotatorPlugin
-  implements Plugin<AnnotatorPluginSetup, AnnotatorPluginStart> {
-  private readonly config: ConfigType
-  private readonly logger: Logger
+export class AnnotatorPlugin implements Plugin<AnnotatorPluginSetup, AnnotatorPluginStart> {
+  private readonly config: ConfigType;
+  private readonly logger: Logger;
 
   constructor(initializerContext: PluginInitializerContext<ConfigType>) {
-    this.config = initializerContext.config.get<ConfigType>()
-    this.logger = initializerContext.logger.get()
+    this.config = initializerContext.config.get<ConfigType>();
+    this.logger = initializerContext.logger.get();
 
-    this.logger.info(`constructor: config="${JSON.stringify(this.config)}"`)
+    this.logger.info(`constructor: config="${JSON.stringify(this.config)}"`);
   }
 
   // @ts-ignore
   public setup(core: CoreSetup<AnnotatorPluginStart>, deps: AnnotatorPluginSetup) {
-    this.logger.debug('[AnnotatorPlugin] setup: Setup')
+    this.logger.debug('[AnnotatorPlugin] setup: Setup');
 
-    const fields: string[] = this.config.annotations.map((a) => a.field)
+    const fields: string[] = this.config.annotations.map((a) => a.field);
 
-    this.logger.debug(`[AnnotatorPlugin] setup: fields="${JSON.stringify(fields)}"`)
+    this.logger.debug(`[AnnotatorPlugin] setup: fields="${JSON.stringify(fields)}"`);
 
     // Register the plugin as a feature for privileges management
     deps.features.registerKibanaFeature({
@@ -61,7 +51,7 @@ export class AnnotatorPlugin
             read: [],
           },
           api: ['annotations:update'],
-          ui: ['view', 'create', 'edit', 'delete'].map((a) => `all:${a}`)
+          ui: ['view', 'create', 'edit', 'delete'].map((a) => `all:${a}`),
         },
         read: {
           app: [PLUGIN_ID],
@@ -69,13 +59,14 @@ export class AnnotatorPlugin
             all: [],
             read: [],
           },
-          ui: ['all:view']
-        }
+          ui: ['all:view'],
+        },
       },
-      subFeatures: fields.map((f): SubFeatureConfig =>
-        ({
+      subFeatures: fields.map(
+        (f): SubFeatureConfig => ({
           name: f,
-          description: 'Grants access to annotation controls corresponding to only this specific field',
+          description:
+            'Grants access to annotation controls corresponding to only this specific field',
           privilegeGroups: [
             {
               groupType: 'mutually_exclusive',
@@ -89,7 +80,9 @@ export class AnnotatorPlugin
                     read: [],
                   },
                   api: ['annotations:update'],
-                  ui: ['view', 'create', 'edit', 'delete'].map((a) => `${f.replace('.', '_')}:${a}`)
+                  ui: ['view', 'create', 'edit', 'delete'].map(
+                    (a) => `${f.replace('.', '_')}:${a}`
+                  ),
                 },
                 {
                   id: `${f.replace('.', '_')}-read`,
@@ -99,32 +92,31 @@ export class AnnotatorPlugin
                     all: [],
                     read: [],
                   },
-                  ui: [`${f.replace('.', '_')}:view`]
-                }
-              ]
-            }
-          ]
+                  ui: [`${f.replace('.', '_')}:view`],
+                },
+              ],
+            },
+          ],
         })
-      )
-    })
+      ),
+    });
 
-    const router = core.http.createRouter()
+    const router = core.http.createRouter();
 
     // Register a custom field formatter
-    registerAnnotationsFieldFormatter(deps.fieldFormats, this.config)
+    registerAnnotationsFieldFormatter(deps.fieldFormats, this.config);
 
     // Register server side APIs
-    defineRoutes(this.logger, this.config, core, router)
+    defineRoutes(this.logger, this.config, core, router);
 
-    return {}
+    return {};
   }
 
   // @ts-ignore
   public start(core: CoreStart) {
-    this.logger.debug('annotator: Started')
-    return {}
+    this.logger.debug('annotator: Started');
+    return {};
   }
 
   public stop() {}
-
 }

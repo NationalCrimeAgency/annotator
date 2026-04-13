@@ -6,7 +6,7 @@
  * @author d221155 (NCA)
  */
 
-import {DocViewerAnnotations} from "./doc_viewer";
+import { DocViewerAnnotations } from './doc_viewer';
 
 export { AnnotationsFieldFormatterEditor } from './editor';
 

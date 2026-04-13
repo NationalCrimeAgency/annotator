@@ -21,9 +21,11 @@ jest.mock('react-dom/server', () => ({
 
 import { AnnotationsFieldFormatter } from './field_formatter';
 import { AnnotationType, ConfigType } from './types';
+import { Logger } from '@kbn/logging';
 
 describe('AnnotationsFieldFormatter', () => {
   let formatter: AnnotationsFieldFormatter;
+  let mockLogger: Logger;
   const mockConfig: ConfigType = {
     enabled: true,
     debug: false,
@@ -49,10 +51,25 @@ describe('AnnotationsFieldFormatter', () => {
   };
 
   beforeEach(() => {
-    // Create a formatter instance with config
+    // Create mock logger
+    mockLogger = {
+      debug: jest.fn(),
+      error: jest.fn(),
+      info: jest.fn(),
+      warn: jest.fn(),
+      trace: jest.fn(),
+      fatal: jest.fn(),
+      log: jest.fn(),
+      get: jest.fn(),
+    } as any;
+
+    // Create a formatter instance with config and logger
     class TestFormatter extends AnnotationsFieldFormatter {
       getPluginConfig(): ConfigType {
         return mockConfig;
+      }
+      getLogger(): Logger {
+        return mockLogger;
       }
     }
     // @ts-ignore
@@ -171,13 +188,10 @@ describe('AnnotationsFieldFormatter', () => {
     });
 
     it('should recover gracefully from malformed JSON', () => {
-      const consoleErrorSpy = jest.spyOn(console, 'error').mockImplementation();
       formatter.htmlConvert('invalid json{', {});
 
-      expect(consoleErrorSpy).toHaveBeenCalled();
+      expect(mockLogger.error).toHaveBeenCalled();
       expect(ReactDOMServer.renderToStaticMarkup).toHaveBeenCalled();
-
-      consoleErrorSpy.mockRestore();
     });
 
     it('should handle special JSON values', () => {

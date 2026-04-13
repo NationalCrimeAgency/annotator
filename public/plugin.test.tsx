@@ -6,8 +6,9 @@
  * @author d221155 (NCA)
  */
 
-import { AnnotatorPlugin, registerAnnotationsFieldFormatter } from './plugin';
-import { coreMock } from '@kbn/core/public/mocks';
+import { AnnotatorPlugin } from './plugin';
+import { registerAnnotationsFieldFormatter } from './register_field_formatter';
+import { coreMock, loggingSystemMock } from '@kbn/core/public/mocks';
 import { ConfigType } from '../common';
 import { PluginInitializerContext } from "@kbn/core/public";
 
@@ -26,6 +27,7 @@ describe('AnnotatorPlugin (public)', () => {
   let initContext: any;
   let coreSetup: ReturnType<typeof coreMock.createSetup>;
   let coreStart: ReturnType<typeof coreMock.createStart>;
+  let logger: ReturnType<typeof loggingSystemMock.createLogger>;
 
   const mockConfig: ConfigType = {
     enabled: true,
@@ -59,8 +61,10 @@ describe('AnnotatorPlugin (public)', () => {
   });
 
   beforeEach(() => {
+    logger = loggingSystemMock.createLogger();
     initContext = {
       config: { get: jest.fn(() => mockConfig) },
+      logger: { get: jest.fn(() => logger) },
     };
     coreSetup = coreMock.createSetup();
     coreStart = coreMock.createStart();
@@ -72,6 +76,7 @@ describe('AnnotatorPlugin (public)', () => {
       const testInitContext: PluginInitializerContext = {
         // @ts-ignore
         config: { get: jest.fn(() => mockConfig) },
+        logger: { get: jest.fn(() => logger) },
       };
 
       new AnnotatorPlugin(testInitContext);
@@ -80,17 +85,17 @@ describe('AnnotatorPlugin (public)', () => {
     });
 
     it('should log config when debug is enabled', () => {
-      const consoleDebugSpy = jest.spyOn(console, 'debug').mockImplementation();
+      const testLogger = loggingSystemMock.createLogger();
       const debugConfig = { ...mockConfig, debug: true };
       const debugInitContext: PluginInitializerContext = {
         // @ts-ignore
         config: { get: jest.fn(() => debugConfig) },
+        logger: { get: jest.fn(() => testLogger) },
       };
 
       new AnnotatorPlugin(debugInitContext);
 
-      expect(consoleDebugSpy).toHaveBeenCalled();
-      consoleDebugSpy.mockRestore();
+      expect(testLogger.debug).toHaveBeenCalled();
     });
   });
 
@@ -99,7 +104,7 @@ describe('AnnotatorPlugin (public)', () => {
       const fieldFormats = { register: jest.fn() };
       const dataViewFieldEditor = { fieldFormatEditors: { register: jest.fn() } };
 
-      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig);
+      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig, logger);
 
       expect(fieldFormats.register).toHaveBeenCalledWith(expect.any(Array));
       expect(fieldFormats.register).toHaveBeenCalledTimes(1);
@@ -109,7 +114,7 @@ describe('AnnotatorPlugin (public)', () => {
       const fieldFormats = { register: jest.fn() };
       const dataViewFieldEditor = { fieldFormatEditors: { register: jest.fn() } };
 
-      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig);
+      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig, logger);
 
       expect(dataViewFieldEditor.fieldFormatEditors.register).toHaveBeenCalled();
     });
@@ -236,6 +241,7 @@ describe('AnnotatorPlugin (public)', () => {
       const customInitContext: PluginInitializerContext = {
         // @ts-ignore
         config: { get: jest.fn(() => customConfig) },
+        logger: { get: jest.fn(() => logger) },
       };
       const customPlugin = new AnnotatorPlugin(customInitContext);
 

@@ -11,14 +11,10 @@ export const PLUGIN_NAME = 'Annotator';
 export const ANNOTATIONS_ROUTE_PATH = '/api/annotations';
 
 export * from './types';
-export {AnnotationsFieldFormatter} from './field_formatter';
+export { AnnotationsFieldFormatter } from './field_formatter';
 export type { AnnotationsFieldFormatterParams } from './field_formatter';
 export {
   findAnnotationConfig,
   flattenAnnotationConfigs,
-  getTagConfigsForField
-} from "./config_utils";
-
-export function getFormattedCurrentTimestamp() {
-    return new Intl.DateTimeFormat('en', {dateStyle: 'full', timeStyle: 'long'}).format(new Date())
-}
+  getTagConfigsForField,
+} from './config_utils';

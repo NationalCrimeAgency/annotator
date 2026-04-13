@@ -10,22 +10,21 @@ import { FeaturesPluginSetup } from '@kbn/features-plugin/server';
 import { FieldFormatsSetup, FieldFormatsStart } from '@kbn/field-formats-plugin/server';
 import { SecurityPluginSetup, SecurityPluginStart } from '@kbn/security-plugin/server';
 
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
 export interface AnnotatorPluginSetup {
   // For registering the custom Field Formatter
-  fieldFormats: FieldFormatsSetup
+  fieldFormats: FieldFormatsSetup;
 
   // For the security context
-  security: SecurityPluginSetup
+  security: SecurityPluginSetup;
 
   // For access control
-  features: FeaturesPluginSetup
+  features: FeaturesPluginSetup;
 }
-// eslint-disable-next-line @typescript-eslint/no-empty-interface
+
 export interface AnnotatorPluginStart {
   // For using the custom Field Formatter
-  fieldFormats: FieldFormatsStart
+  fieldFormats: FieldFormatsStart;
 
   // For using the security context
-  security: SecurityPluginStart
+  security: SecurityPluginStart;
 }
