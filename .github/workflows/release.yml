@@ -1,0 +1,168 @@
+#
+# Creates a new release
+#
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+env:
+  NAME: 'annotator'
+
+jobs:
+  config:
+    uses: ./.github/workflows/config.yml
+
+  release:
+    name: Create GitHub release
+    needs: config
+    runs-on: ubuntu-latest
+    env:
+      ES_STACK_VERSION: ${{ needs.config.outputs.stackVersion }}
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0  # Full history required for commit range in release notes
+
+    - name: Download build artefact from CI
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        RUN_ID=$(gh run list \
+          --workflow=plugin.yml \
+          --commit "${{ github.sha }}" \
+          --status success \
+          --limit 1 \
+          --json databaseId \
+          --jq '.[0].databaseId')
+
+        if [ -z "$RUN_ID" ]; then
+          echo "No successful CI run found for commit ${{ github.sha }}"
+          echo "Ensure the plugin workflow has completed successfully before tagging."
+          exit 1
+        fi
+
+        echo "Downloading artefact from CI run ${RUN_ID}"
+        gh run download "${RUN_ID}" \
+          --name "${{ env.NAME }}-plugin-${{ env.ES_STACK_VERSION }}" \
+          --dir dist/
+
+    - name: Extract version from tag
+      id: get_version
+      run: echo "VERSION=${GITHUB_REF#refs/tags/v}" >> $GITHUB_OUTPUT
+
+    - name: Generate release notes from conventional commits
+      run: |
+        PREV_TAG=$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || echo "")
+
+        if [ -z "$PREV_TAG" ]; then
+          COMMIT_RANGE="HEAD"
+        else
+          COMMIT_RANGE="${PREV_TAG}..HEAD"
+        fi
+
+        echo "# Release ${{ steps.get_version.outputs.VERSION }}" > release_notes.txt
+        echo "" >> release_notes.txt
+
+        FEATURES=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^feat" | sed 's/^feat(\([^)]*\)): /- **\1**: /' | sed 's/^feat: /- /')
+        if [ ! -z "$FEATURES" ]; then
+          echo "## ✨ Features" >> release_notes.txt
+          echo "$FEATURES" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        FIXES=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^fix" | sed 's/^fix(\([^)]*\)): /- **\1**: /' | sed 's/^fix: /- /')
+        if [ ! -z "$FIXES" ]; then
+          echo "## 🐛 Bug Fixes" >> release_notes.txt
+          echo "$FIXES" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        PERF=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^perf" | sed 's/^perf(\([^)]*\)): /- **\1**: /' | sed 's/^perf: /- /')
+        if [ ! -z "$PERF" ]; then
+          echo "## ⚡ Performance" >> release_notes.txt
+          echo "$PERF" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        DOCS=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^docs" | sed 's/^docs(\([^)]*\)): /- **\1**: /' | sed 's/^docs: /- /')
+        if [ ! -z "$DOCS" ]; then
+          echo "## 📝 Documentation" >> release_notes.txt
+          echo "$DOCS" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        REFACTOR=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^refactor" | sed 's/^refactor(\([^)]*\)): /- **\1**: /' | sed 's/^refactor: /- /')
+        if [ ! -z "$REFACTOR" ]; then
+          echo "## ♻️ Refactoring" >> release_notes.txt
+          echo "$REFACTOR" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        TESTS=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^test" | sed 's/^test(\([^)]*\)): /- **\1**: /' | sed 's/^test: /- /')
+        if [ ! -z "$TESTS" ]; then
+          echo "## ✅ Tests" >> release_notes.txt
+          echo "$TESTS" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        CHORES=$(git log ${COMMIT_RANGE} --pretty=format:"%s" --no-merges | grep "^chore" | sed 's/^chore(\([^)]*\)): /- **\1**: /' | sed 's/^chore: /- /')
+        if [ ! -z "$CHORES" ]; then
+          echo "## 🔧 Maintenance" >> release_notes.txt
+          echo "$CHORES" >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        BREAKING=$(git log ${COMMIT_RANGE} --pretty=format:"%B" --no-merges | grep -i "BREAKING CHANGE" -A 5 || true)
+        if [ ! -z "$BREAKING" ]; then
+          echo "## ⚠️ BREAKING CHANGES" >> release_notes.txt
+          echo "$BREAKING" | sed 's/BREAKING CHANGE: /- /' >> release_notes.txt
+          echo "" >> release_notes.txt
+        fi
+
+        echo "---" >> release_notes.txt
+        echo "" >> release_notes.txt
+        if [ ! -z "$PREV_TAG" ]; then
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/compare/${PREV_TAG}...${{ github.ref_name }}" >> release_notes.txt
+        else
+          echo "**Full Changelog**: https://github.com/${{ github.repository }}/commits/${{ github.ref_name }}" >> release_notes.txt
+        fi
+
+    - name: Create release
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        gh release create ${{ github.ref_name }} \
+          --title "Release ${{ steps.get_version.outputs.VERSION }}" \
+          --notes-file release_notes.txt \
+          dist/*
+
+  verify:
+    name: Verify release artefacts
+    needs: release
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Download release assets
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: gh release download ${{ github.ref_name }} --repo ${{ github.repository }}
+
+    - name: Verify plugin zip is present
+      run: |
+        echo "Downloaded files:"
+        ls -lh
+
+        if ls *.zip 1> /dev/null 2>&1; then
+          echo "✓ Plugin zip found"
+        else
+          echo "✗ Plugin zip missing"
+          exit 1
+        fi

@@ -85,7 +85,7 @@ One or more annotation field definitions:
 * `debug`: (Optional) Controls the verbosity of console logging within UI components, defaults to `false` when Kibana is
   not running in dev mode
 
-## Field Mapping
+### Field Mapping
 
 All annotation fields **must** be explicitly mapped within indexes.
 Due to limited support within Discover for rendering nested field types,
@@ -99,7 +99,7 @@ nested annotations.
 
 Note, if configuring multiple annotation fields, they must each have their own corresponding field and runtime mappings.
 
-### Data View: Runtime field
+#### Data View: Runtime field
 
 Define an index with the appropriate field mapping,
 example [deploy/examples/index-mapping.json](deploy/examples/index-mapping.json),
@@ -113,7 +113,7 @@ then add a runtime field to the corresponding Data View:
 
 In practice, values for runtime fields configured on Data Views are calculated for each search request.
 
-### Index: Runtime field
+#### Index: Runtime field
 
 Define an index with the appropriate field mapping including a runtime field,
 example [deploy/examples/index-mapping-with-runtime-field.json](deploy/examples/index-mapping-with-runtime-field.json).
@@ -211,15 +211,19 @@ And mocks are collated into factories:
 
 ## Deploy
 
-Build a distributable archive containing the plugin artefacts:
+Building, testing, packaging, and releasing is now automated within this repository.
+For more information see [.github/workflows/README.md](.github/workflows/README.md).
 
-```shell
-kibana_version="8.19.12"
-yarn build --kibana-version "$kibana_version"
-```
+> If testing the build process locally, build a distributable archive containing the plugin artefacts:
+> 
+> ```shell
+> kibana_version="8.19.12"
+> yarn build --kibana-version "$kibana_version"
+> ```
 
-Next, build a custom Kibana container image which has this plugin (along with any others you need) already installed.
-The example [Dockerfile](Dockerfile) correctly installs this plugin as layer onto top of the standard Kibana image:
+With a plugin package already built (either downloaded from this repository's releases page or built locally),
+build a custom Kibana container image which has this plugin (along with any others you need) already installed.
+The example [Dockerfile](Dockerfile) correctly installs this plugin as layer on the standard Kibana image:
 
 ```shell
 docker build -t "kibana/kibana:${kibana_version}_custom" .
@@ -236,8 +240,6 @@ before running make sure credentials are valid and a default profile has been se
 Alternatively, when creating an image bundled with multiple custom plugins, use the distributable package.
 
 ## Design
-
-## Architecture
 
 ### UI
 

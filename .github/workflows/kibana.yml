@@ -1,3 +1,7 @@
+#
+# Builds a Kibana development environment and yarn repository, caching the outputs for inclusion in other workflows.
+#
+
 name: Kibana Development Environment
 
 on:
@@ -23,7 +27,7 @@ jobs:
     outputs:
       path: ${{ steps.gen_kibana_path.outputs.path }}
       cacheKey: ${{ steps.gen_kibana_path.outputs.cacheKey }}
- 
+
     steps:
       - name: Generate interpolated variables
         id: gen_kibana_path
@@ -39,7 +43,7 @@ jobs:
         run: |
           npm install -g yarn
           yarn config set network-timeout 100000 -g && npm config set legacy-peer-deps=true
-     
+
       # ~1 GB
       - name: Create cache for Kibana source repository
         id: cache-kibana-repository
@@ -47,12 +51,12 @@ jobs:
         with:
           path: ${{ env.KIBANA_DIR }}
           key: ${{ env.KIBANA_CACHE_KEY }}
- 
+
       - name: Download Kibana
         if: steps.cache-kibana-repository.outputs.cache-hit != 'true'
         run: |
           git clone -c advice.detachedHead=false --depth 1 https://github.com/elastic/kibana.git --branch "v${{ inputs.stackVersion }}" "${KIBANA_DIR}"
-     
+
       - name: Get yarn cache directory path
         id: yarn-cache-dir-path
         run: echo "yarn_dir=$(yarn cache dir)" >> $GITHUB_OUTPUT

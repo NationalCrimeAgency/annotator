@@ -1,0 +1,121 @@
+#
+# Bumps the plugin version, triggers the build, and tags the release on success.
+# This is the entry point for the full release chain.
+#
+# Requires a Personal Access Token (PAT) stored as RELEASE_PAT if branch
+# protection rules prevent the default GITHUB_TOKEN from pushing to main.
+#
+name: Version Bump
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Plugin version, without v prefix (e.g. 1.2.0). Triggers a full release.'
+        required: false
+        type: string
+      stackVersion:
+        description: 'Kibana stack version (e.g. 8.20.0). Updates config.yml, Dockerfile, push-image.sh, README.md.'
+        required: false
+        type: string
+
+permissions:
+  contents: write
+
+jobs:
+  bump:
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Validate inputs
+      run: |
+        if [ -z "${{ inputs.version }}" ] && [ -z "${{ inputs.stackVersion }}" ]; then
+          echo "At least one of 'version' or 'stackVersion' must be provided."
+          exit 1
+        fi
+
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        # Use a PAT if branch protection prevents GITHUB_TOKEN from pushing to main.
+        # Create a fine-grained PAT with 'Contents: Read and write' and store it
+        # as a repository secret named RELEASE_PAT.
+        token: ${{ secrets.RELEASE_PAT || secrets.GITHUB_TOKEN }}
+
+    - name: Update plugin version in package.json and kibana.json
+      if: inputs.version != ''
+      run: |
+        jq --arg v "${{ inputs.version }}" '.version = $v' package.json > tmp.json && mv tmp.json package.json
+        jq --arg v "${{ inputs.version }}" '.version = $v' kibana.json > tmp.json && mv tmp.json kibana.json
+
+        echo "package.json version: $(jq -r '.version' package.json)"
+        echo "kibana.json version:  $(jq -r '.version' kibana.json)"
+
+    - name: Update Kibana stack version in config.yml, Dockerfile, push-image.sh, README.md
+      if: inputs.stackVersion != ''
+      run: |
+        OLD=$(grep 'echo "stackVersion=' .github/workflows/config.yml | sed 's/.*stackVersion=\([^"]*\)".*/\1/')
+        NEW="${{ inputs.stackVersion }}"
+
+        echo "Replacing Kibana stack version: ${OLD} -> ${NEW}"
+
+        # Use | as the sed delimiter to avoid conflicts with dots in version strings
+        sed -i "s|${OLD}|${NEW}|g" .github/workflows/config.yml
+        sed -i "s|${OLD}|${NEW}|g" Dockerfile
+        sed -i "s|${OLD}|${NEW}|g" push-image.sh
+        sed -i "s|${OLD}|${NEW}|g" README.md
+
+        echo "config.yml stack version: $(grep 'stackVersion=' .github/workflows/config.yml)"
+
+    - name: Commit and push
+      run: |
+        git config user.name "github-actions[bot]"
+        git config user.email "github-actions[bot]@users.noreply.github.com"
+
+        # Build a commit message reflecting what changed
+        MSG_PARTS=()
+        [ -n "${{ inputs.version }}" ]      && MSG_PARTS+=("bump plugin version to ${{ inputs.version }}")
+        [ -n "${{ inputs.stackVersion }}" ] && MSG_PARTS+=("update Kibana stack to ${{ inputs.stackVersion }}")
+        COMMIT_MSG="chore(release): $(IFS=', '; echo "${MSG_PARTS[*]}")"
+
+        git add package.json kibana.json .github/workflows/config.yml Dockerfile push-image.sh README.md
+        git diff --cached --quiet && echo "No changes to commit" && exit 0
+        git commit -m "${COMMIT_MSG}"
+        git push origin main
+
+    - name: Wait for CI to pass
+      if: inputs.version != ''
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      run: |
+        COMMIT_SHA=$(git rev-parse HEAD)
+        echo "Waiting for plugin.yml CI run on commit ${COMMIT_SHA}..."
+
+        for i in $(seq 1 30); do
+          RUN_ID=$(gh run list \
+            --workflow=plugin.yml \
+            --commit "${COMMIT_SHA}" \
+            --limit 1 \
+            --json databaseId \
+            --jq '.[0].databaseId')
+
+          if [ ! -z "$RUN_ID" ]; then
+            echo "Found CI run ${RUN_ID}, waiting for completion..."
+            gh run watch "${RUN_ID}" --exit-status
+            echo "CI passed."
+            exit 0
+          fi
+
+          echo "CI run not yet registered, retrying in 10s... (${i}/30)"
+          sleep 10
+        done
+
+        echo "Timed out waiting for CI run to appear."
+        exit 1
+
+    - name: Create and push tag
+      if: inputs.version != ''
+      run: |
+        git tag "v${{ inputs.version }}"
+        git push origin "v${{ inputs.version }}"
+        echo "Tagged v${{ inputs.version }} — release workflow will now run."

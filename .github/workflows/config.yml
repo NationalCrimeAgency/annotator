@@ -1,0 +1,35 @@
+# Defines the Elastic stack version and target architecture for all other workflows.
+#
+# Usage:
+#   jobs:
+#     config:
+#       uses: ./.github/workflows/config.yml
+#
+#     some_job:
+#       needs: config
+#       with:
+#         stackVersion: ${{ needs.config.outputs.stackVersion }}
+
+name: Configuration
+on:
+  workflow_call:
+    outputs:
+      stackVersion:
+        description: 'Elastic stack version'
+        value: ${{ jobs.config.outputs.stackVersion }}
+      stackArch:
+        description: 'Target system architecture'
+        value: ${{ jobs.config.outputs.stackArch }}
+
+jobs:
+  config:
+    runs-on: ubuntu-latest
+    outputs:
+      stackVersion: ${{ steps.set.outputs.stackVersion }}
+      stackArch: ${{ steps.set.outputs.stackArch }}
+    steps:
+      - name: Set stack configuration
+        id: set
+        run: |
+          echo "stackVersion=8.19.12" >> $GITHUB_OUTPUT
+          echo "stackArch=linux-x86_64" >> $GITHUB_OUTPUT

@@ -1,0 +1,79 @@
+#
+# Linting before merging a PR
+#
+
+name: Commit Lint
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+
+jobs:
+  commitlint:
+    name: Lint commit messages
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout
+      uses: actions/checkout@v5
+      with:
+        fetch-depth: 0  # Full history required to diff against the base branch
+
+    - name: Validate PR commits follow conventional commits
+      run: |
+        PR_COMMITS=$(git log origin/${{ github.base_ref }}..HEAD --no-merges --pretty=format:"%H")
+
+        echo "Checking commits in PR..."
+        ERRORS=0
+
+        for commit in $PR_COMMITS; do
+          MESSAGE=$(git log -1 --pretty=format:"%s" $commit)
+          FULL_MESSAGE=$(git log -1 --pretty=format:"%B" $commit)
+
+          echo ""
+          echo "Checking: $MESSAGE"
+
+          # Format: type(scope): subject
+          # Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
+          if ! echo "$MESSAGE" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))!?: .+"; then
+            echo "❌ Invalid commit format: $MESSAGE"
+            echo "   Commit: $commit"
+            echo ""
+            echo "Expected format: <type>(<scope>): <subject>"
+            echo "Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert"
+            echo "Example: feat(annotations): add single-select control type"
+            echo "Example: fix: resolve badge rendering for nested fields"
+            ERRORS=$((ERRORS + 1))
+          else
+            echo "✓ Valid conventional commit"
+          fi
+
+          if echo "$FULL_MESSAGE" | grep -qi "BREAKING CHANGE:"; then
+            echo "⚠️  Breaking change detected (ensure version bump reflects this)"
+          fi
+        done
+
+        echo ""
+        if [ $ERRORS -gt 0 ]; then
+          echo "❌ $ERRORS commit(s) do not follow conventional commits format"
+          echo ""
+          echo "Please format your commit messages as: <type>(<scope>): <subject>"
+          echo ""
+          echo "Common types:"
+          echo "  feat:     New feature"
+          echo "  fix:      Bug fix"
+          echo "  docs:     Documentation changes"
+          echo "  style:    Code style changes (formatting, etc.)"
+          echo "  refactor: Code refactoring"
+          echo "  perf:     Performance improvements"
+          echo "  test:     Adding or updating tests"
+          echo "  chore:    Maintenance tasks (dependencies, config, etc.)"
+          echo "  ci:       CI/CD changes"
+          echo "  build:    Build system changes"
+          echo ""
+          echo "For breaking changes, add 'BREAKING CHANGE: <description>' in the commit body,"
+          echo "or append '!' after the type: feat(api)!: remove deprecated endpoint"
+          exit 1
+        else
+          echo "✓ All commits follow conventional commits format"
+        fi
