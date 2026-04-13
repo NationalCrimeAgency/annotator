@@ -89,7 +89,7 @@ jobs:
         source "${HOME}/.nvm/nvm.sh"
         cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
         nvm install && nvm use
-        yarn kbn bootstrap
+        yarn install
 
     - name: Lint
       run: |
