@@ -19,18 +19,35 @@ jobs:
   config:
     uses: ./.github/workflows/config.yml
 
-  setup_kibana:
+  check_kibana_cache:
     needs: config
+    runs-on: ubuntu-latest
+    outputs:
+      cache-hit: ${{ steps.check.outputs.cache-hit }}
+    steps:
+    - name: Check for cached Kibana development environment
+      id: check
+      uses: actions/cache/restore@v4
+      with:
+        path: ${{ github.workspace }}/kibana_${{ needs.config.outputs.stackVersion }}
+        key: kibana-${{ needs.config.outputs.stackArch }}-${{ needs.config.outputs.stackVersion }}
+        lookup-only: true
+
+  setup_kibana:
+    needs: [config, check_kibana_cache]
+    if: needs.check_kibana_cache.outputs.cache-hit != 'true'
     uses: ./.github/workflows/kibana.yml
     with:
       stackVersion: ${{ needs.config.outputs.stackVersion }}
       stackArch: ${{ needs.config.outputs.stackArch }}
 
   build_plugin:
-    needs: [config, setup_kibana]
+    needs: [config, check_kibana_cache, setup_kibana]
+    if: always() && !failure() && !cancelled()
     runs-on: ubuntu-latest
     env:
       ES_STACK_VERSION: ${{ needs.config.outputs.stackVersion }}
+      KIBANA_DIR: ${{ github.workspace }}/kibana_${{ needs.config.outputs.stackVersion }}
 
     steps:
     - name: Install packages
@@ -42,8 +59,8 @@ jobs:
       id: cache-kibana-repository
       uses: actions/cache@v4
       with:
-        path: ${{ needs.setup_kibana.outputs.path }}
-        key: ${{ needs.setup_kibana.outputs.cacheKey }}
+        path: ${{ env.KIBANA_DIR }}
+        key: kibana-${{ needs.config.outputs.stackArch }}-${{ needs.config.outputs.stackVersion }}
 
     - name: Get yarn cache directory path
       id: yarn-cache-dir-path
@@ -65,33 +82,33 @@ jobs:
         path: plugin
 
     - name: Move repo
-      run: mv ${GITHUB_WORKSPACE}/plugin ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+      run: mv ${GITHUB_WORKSPACE}/plugin ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
 
     - name: Bootstrap plugin
       run: |
         source "${HOME}/.nvm/nvm.sh"
-        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
         nvm install && nvm use
         yarn kbn bootstrap
 
     - name: Lint
       run: |
         source "${HOME}/.nvm/nvm.sh"
-        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
         nvm install && nvm use
         node ../../scripts/eslint .
 
     - name: Build plugin
       run: |
         source "${HOME}/.nvm/nvm.sh"
-        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
         nvm install && nvm use
         yarn build --kibana-version "${{ env.ES_STACK_VERSION }}"
 
     - name: Generate coverage report
       run: |
         source "${HOME}/.nvm/nvm.sh"
-        cd ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}
+        cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}
         nvm install && nvm use
         yarn test:coverage
 
@@ -99,5 +116,5 @@ jobs:
       uses: actions/upload-artifact@v4
       with:
         name: ${{ env.NAME }}-plugin-${{ env.ES_STACK_VERSION }}
-        path: ${{ needs.setup_kibana.outputs.path }}/plugins/${{ env.NAME }}/build/*.zip
+        path: ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}/build/*.zip
         compression-level: 0
