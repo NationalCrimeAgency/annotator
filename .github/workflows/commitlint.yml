@@ -35,7 +35,7 @@ jobs:
 
           # Format: type(scope): subject
           # Types: feat, fix, docs, style, refactor, perf, test, chore, ci, build, revert
-          if ! echo "$MESSAGE" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))!?: .+"; then
+          if ! echo "$MESSAGE" | grep -qE "^(feat|fix|docs|style|refactor|perf|test|chore|ci|build|revert)(\(.+\))?!?: .+"; then
             echo "❌ Invalid commit format: $MESSAGE"
             echo "   Commit: $commit"
             echo ""
