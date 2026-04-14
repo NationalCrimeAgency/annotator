@@ -53,7 +53,7 @@ export const annotationConfigTag = {
 export type AnnotationConfigTag = TypeOf<typeof annotationConfigTag.schema>;
 
 /**
- * Flattened annotations configuration.
+ * Flattened annotator configuration.
  */
 export interface AnnotationConfigFlat extends Omit<TagConfig, 'children' | 'name'> {
   categoryName: string;

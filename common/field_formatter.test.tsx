@@ -6,7 +6,7 @@
  * @author d221155 (NCA)
  */
 
-// Mock EUI components BEFORE importing the formatter (which calls setEuiDevProviderWarning)
+// Mock EUI components BEFORE importing the formatter (which calls setEuDevProviderWarning)
 jest.mock('@elastic/eui', () => ({
   EuiBadge: ({ children }: any) => children,
   EuiProvider: ({ children }: any) => children,

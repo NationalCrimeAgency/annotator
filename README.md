@@ -271,5 +271,5 @@ Unless stated otherwise, the contents of this repository have been released unde
 
 * Code (including any example code) under [MIT License](https://opensource.org/licenses/MIT)
 * Documentation
-  under [Open Government License v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
+  under [Open Government Licence v3.0](https://www.nationalarchives.gov.uk/doc/open-government-licence/version/3/)
 * Crown Copyright 2025, National Crime Agency (NCA)

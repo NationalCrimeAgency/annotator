@@ -6,7 +6,7 @@
  * @author d221155 (NCA)
  */
 
-import { defineRoutes } from './index';
+import { defineRoutes } from '.';
 import { coreMock, loggingSystemMock } from '@kbn/core/server/mocks';
 import { httpServerMock } from '@kbn/core-http-server-mocks';
 import { ConfigType, ANNOTATIONS_ROUTE_PATH } from '../../common';
