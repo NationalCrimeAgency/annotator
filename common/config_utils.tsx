@@ -23,7 +23,7 @@ export function flattenValue<T>(value: T): string | T {
 }
 
 /**
- * Flattens the annotation configuration for ease of use.
+ * Flattens the annotator `TagConfig`s for ease of use.
  * @param annotationConfigs List of `TagConfig`s
  * @return: Flattened version of the given list of `TagConfig`s or an empty list (if `TagConfig` was undefined or empty)
  */
@@ -40,7 +40,7 @@ export function flattenAnnotationConfigs(
 }
 
 /**
- * Returns the list of `TagConfig`s defined the given field name.
+ * Returns the list of `TagConfig`s defined for the given field name.
  * @param field
  * @param config
  * @return List of `TagConfig`s or an empty list
@@ -54,7 +54,7 @@ export function getTagConfigsForField(field: string, config: ConfigType | undefi
 }
 
 /**
- * Returns the first matching (flattened) AnnotationConfig.
+ * Returns the first matching (flattened) `AnnotationConfig`.
  * @param flattenedTagConfigs
  * @param feature_category
  * @param feature_name

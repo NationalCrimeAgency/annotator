@@ -7,7 +7,7 @@
  */
 
 import type { DocViewRenderProps } from '@kbn/unified-doc-viewer/types';
-import React, { Fragment, SetStateAction, useCallback, useEffect, useState } from 'react';
+import React, { Fragment, SetStateAction, useCallback, useEffect, useMemo, useState } from 'react';
 import {
   EuiButton,
   EuiDescriptionList,
@@ -68,10 +68,10 @@ export const DocViewerAnnotations: React.FC<DocViewerAnnotationsProps> = ({
   const fieldIdPrefix = `annotations-${field}-${hit.raw._id}`;
 
   // Flattened annotation configurations for "tags"
-  const configTags = flattenAnnotationConfigs(tagConfigs);
+  const configTags = useMemo(() => flattenAnnotationConfigs(tagConfigs), [tagConfigs]);
 
   // Replaces `.` with `_` within the annotation field name
-  const escapedField = field.replace('.', '_');
+  const escapedField = field.replace(/\./g, '_');
 
   // Fetch the user's effective feature privileges
   const capabilities =
@@ -96,7 +96,8 @@ export const DocViewerAnnotations: React.FC<DocViewerAnnotationsProps> = ({
           configTags
         ) as SetStateAction<Map<string, FieldValue>>
       ),
-    [hit, field, tagConfigs, configTags, logger]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hit]
   );
 
   // Reactive hook to update controls states on change
@@ -152,7 +153,8 @@ export const DocViewerAnnotations: React.FC<DocViewerAnnotationsProps> = ({
           core.notifications.toasts.addError(err, { title: 'Save Changes: Server Error' });
         });
     },
-    [hit, fieldValues, field, tagConfigs, logger, core.http, core.notifications.toasts]
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    [hit, fieldValues]
   );
 
   /**

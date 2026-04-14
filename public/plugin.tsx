@@ -88,6 +88,13 @@ export class AnnotatorPlugin
         this.logger.debug(
           this.cn + `setup/config.docViews.map: Adding DocView, title="${docView.title}"`
         );
+
+        // Pre-compute tagConfigs for each field to avoid recreating on every render
+        const fieldTagConfigs = docView.fields.reduce((acc, f) => {
+          acc[f] = getTagConfigsForField(f, config);
+          return acc;
+        }, {} as Record<string, any>);
+
         deps.unifiedDocViewer.registry.add({
           // Use the defined ID (if provided) or generate one based on the title
           id: docView.id || docView.title.toLowerCase().replace(' ', '_'),
@@ -108,7 +115,7 @@ export class AnnotatorPlugin
                     core={core}
                     field={f}
                     logger={this.logger}
-                    tagConfigs={getTagConfigsForField(f, config)}
+                    tagConfigs={fieldTagConfigs[f]}
                   />
                 ))}
               </React.Suspense>
