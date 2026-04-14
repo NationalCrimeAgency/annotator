@@ -58,7 +58,9 @@ describe('AnnotationsFieldFormatterEditor', () => {
     render(<AnnotationsFieldFormatterEditor onChange={mockOnChange} />);
 
     expect(
-      screen.getByText(/Enter the field name so it can be matched against the Annotator configuration/)
+      screen.getByText(
+        /Enter the field name so it can be matched against the Annotator configuration/
+      )
     ).toBeInTheDocument();
   });
 

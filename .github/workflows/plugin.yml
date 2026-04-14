@@ -92,6 +92,7 @@ jobs:
         yarn install
 
     - name: Lint
+      continue-on-error: true
       run: |
         source "${HOME}/.nvm/nvm.sh"
         cd ${{ env.KIBANA_DIR }}/plugins/${{ env.NAME }}

@@ -10,7 +10,7 @@ import { AnnotatorPlugin } from './plugin';
 import { registerAnnotationsFieldFormatter } from './register_field_formatter';
 import { coreMock, loggingSystemMock } from '@kbn/core/public/mocks';
 import { ConfigType } from '../common';
-import { PluginInitializerContext } from "@kbn/core/public";
+import { PluginInitializerContext } from '@kbn/core/public';
 
 // Mock the lazy-loaded component but keep the real editor
 jest.mock('./components/annotations', () => {
@@ -104,7 +104,12 @@ describe('AnnotatorPlugin (public)', () => {
       const fieldFormats = { register: jest.fn() };
       const dataViewFieldEditor = { fieldFormatEditors: { register: jest.fn() } };
 
-      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig, logger);
+      registerAnnotationsFieldFormatter(
+        fieldFormats as any,
+        dataViewFieldEditor as any,
+        mockConfig,
+        logger
+      );
 
       expect(fieldFormats.register).toHaveBeenCalledWith(expect.any(Array));
       expect(fieldFormats.register).toHaveBeenCalledTimes(1);
@@ -114,7 +119,12 @@ describe('AnnotatorPlugin (public)', () => {
       const fieldFormats = { register: jest.fn() };
       const dataViewFieldEditor = { fieldFormatEditors: { register: jest.fn() } };
 
-      registerAnnotationsFieldFormatter(fieldFormats as any, dataViewFieldEditor as any, mockConfig, logger);
+      registerAnnotationsFieldFormatter(
+        fieldFormats as any,
+        dataViewFieldEditor as any,
+        mockConfig,
+        logger
+      );
 
       expect(dataViewFieldEditor.fieldFormatEditors.register).toHaveBeenCalled();
     });

@@ -10,7 +10,7 @@ import { AnnotatorPlugin } from './plugin';
 import { registerAnnotationsFieldFormatter } from './register_field_formatter';
 import { coreMock, loggingSystemMock } from '@kbn/core/server/mocks';
 import { ConfigType, PLUGIN_ID, PLUGIN_NAME } from '../common';
-import { PluginInitializerContext } from "@kbn/core/server";
+import { PluginInitializerContext } from '@kbn/core/server';
 
 describe('AnnotatorPlugin (server)', () => {
   let plugin: AnnotatorPlugin;
@@ -237,9 +237,7 @@ describe('AnnotatorPlugin (server)', () => {
 
       plugin.setup(coreSetup, setupDeps as any);
 
-      expect(logger.debug).toHaveBeenCalledWith(
-        expect.stringContaining('setup: fields=')
-      );
+      expect(logger.debug).toHaveBeenCalledWith(expect.stringContaining('setup: fields='));
     });
 
     it('should return empty setup contract', () => {

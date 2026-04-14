@@ -22,6 +22,7 @@ jest.mock('react-dom/server', () => ({
 import { AnnotationsFieldFormatter } from './field_formatter';
 import { AnnotationType, ConfigType } from './types';
 import { Logger } from '@kbn/logging';
+import * as ReactDOMServer from 'react-dom/server';
 
 describe('AnnotationsFieldFormatter', () => {
   let formatter: AnnotationsFieldFormatter;
@@ -149,8 +150,6 @@ describe('AnnotationsFieldFormatter', () => {
   });
 
   describe('htmlConvert', () => {
-    const ReactDOMServer = require('react-dom/server');
-
     it('should render annotations as HTML badges', () => {
       const annotations: AnnotationType[] = [
         {
@@ -222,7 +221,6 @@ describe('AnnotationsFieldFormatter', () => {
       formatter.htmlConvert(JSON.stringify(annotations), {});
 
       // Verify renderToString was called (indirectly testing badge generation)
-      const ReactDOMServer = require('react-dom/server');
       expect(ReactDOMServer.renderToString).toHaveBeenCalled();
     });
 

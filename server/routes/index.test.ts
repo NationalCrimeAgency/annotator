@@ -7,7 +7,8 @@
  */
 
 import { defineRoutes } from './index';
-import { coreMock, httpServerMock, loggingSystemMock } from '@kbn/core/server/mocks';
+import { coreMock, loggingSystemMock } from '@kbn/core/server/mocks';
+import { httpServerMock } from '@kbn/core-http-server-mocks';
 import { ConfigType, ANNOTATIONS_ROUTE_PATH } from '../../common';
 
 describe('Annotation Routes', () => {
@@ -57,7 +58,9 @@ describe('Annotation Routes', () => {
       expect(mockRouter.post).toHaveBeenCalled();
 
       const routeConfig = mockRouter.post.mock.calls[0][0];
-      expect(routeConfig.path).toBe(`${ANNOTATIONS_ROUTE_PATH}/{index}/{id}/{field}/{annotation_type}`);
+      expect(routeConfig.path).toBe(
+        `${ANNOTATIONS_ROUTE_PATH}/{index}/{id}/{field}/{annotation_type}`
+      );
     });
 
     it('should register route with validation schema', () => {
@@ -81,9 +84,7 @@ describe('Annotation Routes', () => {
     it('should log route path during registration', () => {
       defineRoutes(mockLogger, mockConfig, mockCore, mockRouter);
 
-      expect(mockLogger.debug).toHaveBeenCalledWith(
-        expect.stringContaining('defineRoutes: path=')
-      );
+      expect(mockLogger.debug).toHaveBeenCalledWith(expect.stringContaining('defineRoutes: path='));
     });
   });
 
@@ -316,9 +317,7 @@ describe('Annotation Routes', () => {
 
       await mockHandler(mockContext, mockRequest, mockResponse);
 
-      expect(mockLogger.info).toHaveBeenCalledWith(
-        expect.stringContaining('action="UPDATED"')
-      );
+      expect(mockLogger.info).toHaveBeenCalledWith(expect.stringContaining('action="UPDATED"'));
     });
   });
 
@@ -363,9 +362,9 @@ describe('Annotation Routes', () => {
 
       const mockResponse = httpServerMock.createResponseFactory();
 
-      await expect(
-        mockHandler(mockContext, mockRequest, mockResponse)
-      ).rejects.toThrow('No security plugin was found');
+      await expect(mockHandler(mockContext, mockRequest, mockResponse)).rejects.toThrow(
+        'No security plugin was found'
+      );
     });
 
     it('should throw error when no current user found', async () => {
@@ -412,9 +411,9 @@ describe('Annotation Routes', () => {
 
       const mockResponse = httpServerMock.createResponseFactory();
 
-      await expect(
-        mockHandler(mockContext, mockRequest, mockResponse)
-      ).rejects.toThrow('No current user was found');
+      await expect(mockHandler(mockContext, mockRequest, mockResponse)).rejects.toThrow(
+        'No current user was found'
+      );
     });
   });
 });
