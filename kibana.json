@@ -1,7 +1,7 @@
 {
   "id": "annotator",
   "configPath": "annotator",
-  "version": "1.1.0",
+  "version": "1.2.0",
   "kibanaVersion": "kibana",
   "owner": {
     "name": "d221155 @ NCA",
