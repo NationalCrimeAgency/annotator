@@ -72,7 +72,7 @@ export class AnnotatorPlugin implements Plugin<AnnotatorPluginSetup, AnnotatorPl
               groupType: 'mutually_exclusive',
               privileges: [
                 {
-                  id: `${f.replace('.', '_')}-all`,
+                  id: `${f.replace(/\./g, '_')}-all`,
                   name: 'All',
                   includeIn: 'all',
                   savedObject: {
@@ -81,18 +81,18 @@ export class AnnotatorPlugin implements Plugin<AnnotatorPluginSetup, AnnotatorPl
                   },
                   api: ['annotations:update'],
                   ui: ['view', 'create', 'edit', 'delete'].map(
-                    (a) => `${f.replace('.', '_')}:${a}`
+                    (a) => `${f.replace(/\./g, '_')}:${a}`
                   ),
                 },
                 {
-                  id: `${f.replace('.', '_')}-read`,
+                  id: `${f.replace(/\./g, '_')}-read`,
                   name: 'Read',
                   includeIn: 'read',
                   savedObject: {
                     all: [],
                     read: [],
                   },
-                  ui: [`${f.replace('.', '_')}:view`],
+                  ui: [`${f.replace(/\./g, '_')}:view`],
                 },
               ],
             },

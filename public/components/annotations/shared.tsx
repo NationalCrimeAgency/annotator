@@ -119,8 +119,8 @@ export function formatAnnotationsToComboBoxOptions(
   return annotations.map((annotation): EuiComboBoxOptionOption => {
     const annotationConfig = findAnnotationConfig(
       configTags,
-      annotation.feature_category,
-      annotation.feature_name
+      flattenValue(annotation.feature_category) as string,
+      flattenValue(annotation.feature_name) as string
     );
     return {
       label: flattenValue(annotation.feature_name) || '',
@@ -146,7 +146,7 @@ export function formatAnnotationsToFieldValues(
   return new Map(
     tagConfigs?.map((annotationConfig) => {
       const filteredAnnotations = (annotations || []).filter(
-        (t) => t.feature_category === annotationConfig.name
+        (t) => flattenValue(t.feature_category) === annotationConfig.name
       );
 
       let fieldValue;
