@@ -20,6 +20,7 @@ import { CoreSetup } from '@kbn/core/public';
 import { useKibana } from '@kbn/kibana-react-plugin/public';
 import { Logger } from '@kbn/logging';
 import {
+  AnnotationType,
   ANNOTATIONS_ROUTE_PATH,
   FieldValue,
   flattenAnnotationConfigs,
@@ -63,7 +64,11 @@ export const DocViewerAnnotations: React.FC<DocViewerAnnotationsProps> = ({
 }) => {
   const cn = '[DocViewerAnnotations] ';
 
-  logger.debug(cn + `field="${field}", tagConfigs="${JSON.stringify(tagConfigs)}"`);
+  logger.debug(
+    cn +
+      `field="${field}", tagConfigs="${JSON.stringify(tagConfigs)}", ` +
+      `hit.raw="${JSON.stringify(hit?.raw)}"`
+  );
 
   const fieldIdPrefix = `annotations-${field}-${hit.raw._id}`;
 
@@ -88,14 +93,19 @@ export const DocViewerAnnotations: React.FC<DocViewerAnnotationsProps> = ({
 
   // Initialise controls for the tags based their current values (if any) within the current document in scope
   useEffect(
-    () =>
+    () => {
+      // Discover only populates `hit.raw.fields` for visible columns, so fallback to `_source`
+      const fromFields = hit?.raw?.fields?.[field];
+      const fromSource = field
+        .split('.')
+        .reduce<unknown>((obj, key) => (obj as Record<string, unknown>)?.[key], hit?.raw?._source);
+      const annotationData = (fromFields ?? fromSource) as AnnotationType[];
       setFieldValues(
-        formatAnnotationsToFieldValues(
-          hit?.raw?.fields?.[field],
-          tagConfigs,
-          configTags
-        ) as SetStateAction<Map<string, FieldValue>>
-      ),
+        formatAnnotationsToFieldValues(annotationData, tagConfigs, configTags) as SetStateAction<
+          Map<string, FieldValue>
+        >
+      );
+    },
     // eslint-disable-next-line react-hooks/exhaustive-deps
     [hit]
   );
